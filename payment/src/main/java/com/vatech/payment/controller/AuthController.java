@@ -2,6 +2,7 @@ package com.vatech.payment.controller;
 
 import com.vatech.payment.service.JwtUtil;
 import com.vatech.payment.dto.AuthRequest;
+import com.vatech.payment.service.UserService;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,9 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -25,6 +29,15 @@ public class AuthController {
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtil.generateToken(authRequest.getUsername());
+        System.out.println("Received request: " + authRequest.getUsername() + ", " + authRequest.getPassword());
         return ResponseEntity.ok(jwt);
     }
+
+    // New Register Endpoint
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody AuthRequest authRequest) {
+        String response = userService.registerUser(authRequest.getUsername(), authRequest.getPassword());
+        return ResponseEntity.ok(response);
+    }
+
 }
