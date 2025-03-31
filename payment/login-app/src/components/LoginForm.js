@@ -7,6 +7,10 @@ function LoginForm() {
     const [password, setPassword] = useState("");
     const navigate = useNavigate(); // Proper usage of hooks
 
+    if (localStorage.getItem("token")) {
+            window.location.href = "/dashboard";
+        }
+
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
@@ -27,6 +31,10 @@ function LoginForm() {
             console.error("Login error:", error);
         }
     };
+
+    const handleRegisterRedirect = () => {
+            navigate("/register"); // Navigate to the registration page
+        };
 
     return (
         <div>
@@ -50,7 +58,8 @@ function LoginForm() {
                         required
                     />
                 </div>
-                <button type="submit">Login</button>
+                <button type="submit" style={{ marginRight: "10px" }}>Login</button>
+                <button type="button" onClick={handleRegisterRedirect}>Register</button>
             </form>
         </div>
     );
