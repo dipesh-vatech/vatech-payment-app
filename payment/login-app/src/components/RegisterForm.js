@@ -25,12 +25,13 @@ function RegisterForm() {
             });
 
             if (response.ok) {
-                alert("Registration successful! You can now log in.");
+                const data = await response.json(); // Parse JSON response
+                alert(`Registration successful! Your account has been created. You can now log in.`);
                 navigate("/login"); // Redirect to login page
             } else {
-                const errorMessage = await response.text();
-                alert(`Registration failed: ${errorMessage}`);
-                console.error("Server error:", errorMessage);
+                const errorData = await response.json(); // Extract detailed error message
+                alert(`Registration failed: ${errorData.error || "Unknown error"}`);
+                console.error("Server error:", errorData);
             }
         } catch (error) {
             console.error("Registration error:", error);

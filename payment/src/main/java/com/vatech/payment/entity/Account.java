@@ -30,6 +30,16 @@ public class Account {
         this.accountId = accountId;
     }
 
+    // Getter for user
+    public User getUser() {
+        return user;
+    }
+
+    // Setter for user
+    public void setUser(User user) {
+        this.user = user;
+    }
+
 //    public String getUsername() {
 //        return username;
 //    }

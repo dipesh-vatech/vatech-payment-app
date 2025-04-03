@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,9 +45,15 @@ public class AuthController {
 
     // New Register Endpoint
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthRequest authRequest) {
-        String response = userService.registerUser(authRequest.getUsername(), authRequest.getPassword());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Map<String, String>> register(@RequestBody AuthRequest authRequest) {
+        String accountNumber = userService.registerUser(authRequest.getUsername(), authRequest.getPassword());
+
+        // Wrap response in a Map for a more structured response
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "User registered successfully");
+        response.put("accountNumber", accountNumber); // Include account number in the response
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 }
