@@ -25,8 +25,10 @@ function LoginForm() {
                 localStorage.setItem("token", data.token);
                 navigate("/dashboard");
             } else {
-                alert("Invalid credentials.");
-            }
+                       const errorMessage = await response.text(); // Fetch backend error message
+                       console.error(`Login failed with status ${response.status}:`, errorMessage);
+                       alert(`Login failed: ${response.status} - ${errorMessage || "Invalid credentials."}`);
+                   }
         } catch (error) {
             console.error("Login error:", error);
         }

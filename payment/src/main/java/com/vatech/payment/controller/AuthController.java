@@ -33,7 +33,7 @@ public class AuthController {
 
         // Generate JWT token
         String jwt = jwtUtil.generateToken(authRequest.getUsername());
-        System.out.println("Received request: " + authRequest.getUsername() + ", " + authRequest.getPassword());
+//        System.out.println("Received request: " + authRequest.getUsername() + ", " + authRequest.getPassword());
 
         // Wrap token in a JSON object
         Map<String, String> response = new HashMap<>();
@@ -41,17 +41,6 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
-
-//    @PostMapping("/login")
-//    public ResponseEntity<String> login(@RequestBody AuthRequest authRequest) {
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
-//        );
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//        String jwt = jwtUtil.generateToken(authRequest.getUsername());
-//        System.out.println("Received request: " + authRequest.getUsername() + ", " + authRequest.getPassword());
-//        return ResponseEntity.ok(jwt);
-//    }
 
     // New Register Endpoint
     @PostMapping("/register")

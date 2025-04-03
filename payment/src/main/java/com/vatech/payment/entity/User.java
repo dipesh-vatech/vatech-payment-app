@@ -1,6 +1,7 @@
 package com.vatech.payment.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 public class User {
@@ -14,6 +15,9 @@ public class User {
     @Column(nullable = false)
     private String password;
     private String roles;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Account> accounts;
 
     // Getter for 'id'
     public Long getId() {
