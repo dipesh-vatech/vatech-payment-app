@@ -25,7 +25,7 @@ function RegisterForm() {
             });
 
             if (response.ok) {
-                const data = await response.json(); // Parse JSON response
+//                const data = await response.json(); // Parse JSON response
                 alert(`Registration successful! Your account has been created. You can now log in.`);
                 navigate("/login"); // Redirect to login page
             } else {

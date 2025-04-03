@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./LoginForm.css"; // Import the CSS file
 
 function LoginForm() {
-    // Hooks are called at the top level of the functional component
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const navigate = useNavigate(); // Proper usage of hooks
+    const navigate = useNavigate();
 
     if (localStorage.getItem("token")) {
-            window.location.href = "/dashboard";
-        }
+        window.location.href = "/dashboard";
+    }
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -25,21 +25,21 @@ function LoginForm() {
                 localStorage.setItem("token", data.token);
                 navigate("/dashboard");
             } else {
-                       const errorMessage = await response.text(); // Fetch backend error message
-                       console.error(`Login failed with status ${response.status}:`, errorMessage);
-                       alert(`Login failed: ${response.status} - ${errorMessage || "Invalid credentials."}`);
-                   }
+                const errorMessage = await response.text();
+                console.error(`Login failed with status ${response.status}:`, errorMessage);
+                alert(`Login failed: ${response.status} - ${errorMessage || "Invalid credentials."}`);
+            }
         } catch (error) {
             console.error("Login error:", error);
         }
     };
 
     const handleRegisterRedirect = () => {
-            navigate("/register"); // Navigate to the registration page
-        };
+        navigate("/register");
+    };
 
     return (
-        <div>
+        <div className="login-container">
             <h2>Login</h2>
             <form onSubmit={handleLogin}>
                 <div>
@@ -60,8 +60,10 @@ function LoginForm() {
                         required
                     />
                 </div>
-                <button type="submit" style={{ marginRight: "10px" }}>Login</button>
-                <button type="button" onClick={handleRegisterRedirect}>Register</button>
+                <button type="submit">Login</button>
+                <button type="button" className="secondary" onClick={handleRegisterRedirect}>
+                    Register
+                </button>
             </form>
         </div>
     );
