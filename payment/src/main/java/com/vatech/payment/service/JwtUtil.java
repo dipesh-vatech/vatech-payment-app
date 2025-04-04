@@ -22,7 +22,7 @@ public class JwtUtil {
             throw new IllegalArgumentException("JWT secret key is missing. Please configure 'jwt.secret.key' in application.properties.");
         }
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        System.out.println("Encoded Secret Key: " + new String(secretKey.getEncoded()));
+//        System.out.println("Encoded Secret Key: " + new String(secretKey.getEncoded()));
     }
 
     // Generate JWT Token
@@ -35,8 +35,8 @@ public class JwtUtil {
                 .compact();
 
         // Log the generated token for debugging (optional)
-        System.out.println("Generated Token: " + token);
-        System.out.println("Secret Key Used: " + new String(secretKey.getEncoded()));
+//        System.out.println("Generated Token: " + token);
+//        System.out.println("Secret Key Used: " + new String(secretKey.getEncoded()));
 
         return token; // Return the generated token
     }
