@@ -30,7 +30,7 @@ public class JwtUtil {
         String token = Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000)) // 1 day expiration
+                .setExpiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000)) // 15 min expiration
                 .signWith(secretKey)
                 .compact();
 
