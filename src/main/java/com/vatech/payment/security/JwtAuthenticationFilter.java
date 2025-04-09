@@ -33,24 +33,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = null;
         String jwt = null;
 
+        // Extract JWT from the Authorization header
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7); // Extract JWT token
-//            System.out.println("Token Received from Frontend: " + jwt);
-            username = jwtUtil.extractUsername(jwt); // Extract username from JWT token
-//            System.out.println("Extracted Username: " + username);
+            jwt = authorizationHeader.substring(7);
+            try {
+                username = jwtUtil.extractUsername(jwt); // Extract username
+            } catch (Exception e) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token.");
+                return;
+            }
         }
 
+        // Check if the user is already authenticated
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            if (jwtUtil.validateToken(jwt, userDetails)) { // Validate the token
-//                System.out.println("Token is valid. Authenticating user: " + username);
+            if (jwtUtil.validateToken(jwt, userDetails)) { // Validate token
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
-                System.out.println("Token validation failed");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token.");
+                return;
             }
         }
 

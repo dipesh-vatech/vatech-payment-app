@@ -8,31 +8,34 @@ function LoginForm() {
     const navigate = useNavigate();
 
     if (localStorage.getItem("token")) {
-        window.location.href = "/dashboard";
+//        window.location.href = "/dashboard";
     }
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch("http://localhost:8080/api/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-            });
+const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+        const response = await fetch("http://localhost:8080/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+        });
 
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem("token", data.token);
-                navigate("/dashboard");
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem("token", data.token);
+            navigate("/dashboard");
+        } else {
+            const errorMessage = await response.text();
+            if (response.status === 401) {
+                alert("Session expired or invalid credentials. Please try again.");
             } else {
-                const errorMessage = await response.text();
-                console.error(`Login failed with status ${response.status}:`, errorMessage);
-                alert(`Login failed: ${response.status} - ${errorMessage || "Invalid credentials."}`);
+                alert(`Login failed: ${response.status} - ${errorMessage}`);
             }
-        } catch (error) {
-            console.error("Login error:", error);
         }
-    };
+    } catch (error) {
+        console.error("Login error:", error);
+    }
+};
 
     const handleRegisterRedirect = () => {
         navigate("/register");

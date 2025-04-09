@@ -1,46 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-    const [accountDetails, setAccountDetails] = useState(null); // State to store account details
-    const [loading, setLoading] = useState(true); // State to handle loading indicator
-    const [amount, setAmount] = useState(""); // State to handle transaction amount
+    const [accountDetails, setAccountDetails] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [amount, setAmount] = useState("");
     const navigate = useNavigate();
 
+    // Stabilize fetchAccountDetails using useCallback
+    const fetchAccountDetails = useCallback(async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            alert("No token found. Redirecting to login...");
+            localStorage.removeItem("token");
+            navigate("/login");
+            return;
+        }
+
+        const { exp } = JSON.parse(atob(token.split(".")[1]));
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (currentTime >= exp) {
+            alert("Session expired. Redirecting to login...");
+            localStorage.removeItem("token");
+            navigate("/login");
+            return;
+        }
+
+        try {
+            const response = await fetch("http://localhost:8080/api/user/account", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setAccountDetails(data);
+            } else {
+                alert("Unable to fetch account details!");
+            }
+        } catch (error) {
+            alert("An error occurred while fetching account details.");
+        } finally {
+            setLoading(false);
+        }
+    }, [navigate]); // Include `navigate` as a dependency
+
+    // Fetch account details on mount
     useEffect(() => {
-        const fetchAccountDetails = async () => {
-            const token = localStorage.getItem("token"); // Get JWT token from localStorage
-            if (!token) {
-                alert("No token found. Redirecting to login...");
-                localStorage.removeItem("token"); // Clear invalid token
-                navigate("/login");
-                return;
-            }
-
-            try {
-                const response = await fetch("http://localhost:8080/api/user/account", {
-                    method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (response.ok) {
-                    const data = await response.json(); // Parse the JSON response
-                    setAccountDetails(data); // Save account details to state
-                } else {
-                    alert("Unable to fetch account details!");
-                }
-            } catch (error) {
-                alert("An error occurred while fetching account details.");
-            } finally {
-                setLoading(false); // Stop loading after data fetch
-            }
-        };
-
         fetchAccountDetails();
-    }, [navigate]);
+    }, [fetchAccountDetails]); // Add `fetchAccountDetails` to the dependency array
 
     const handleTransaction = async (type) => {
         const token = localStorage.getItem("token");
@@ -49,11 +60,20 @@ const Dashboard = () => {
             return;
         }
 
+        const { exp } = JSON.parse(atob(token.split(".")[1]));
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (currentTime >= exp) {
+            alert("Session expired. Redirecting to login...");
+            localStorage.removeItem("token");
+            navigate("/login");
+            return;
+        }
+
         try {
             const response = await fetch(`http://localhost:8080/api/user/${type}`, {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer ${token}`,
+                    Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ amount: parseFloat(amount) }),
@@ -61,18 +81,8 @@ const Dashboard = () => {
 
             if (response.ok) {
                 alert(`${type.charAt(0).toUpperCase() + type.slice(1)} successful!`);
-                // Refresh account details after transaction
-                const updatedDetails = await fetch("http://localhost:8080/api/user/account", {
-                    method: "GET",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                const data = await updatedDetails.json();
-                setAccountDetails(data); // Update account details
-                setAmount(""); // Clear transaction input
+                fetchAccountDetails(); // Refresh account details
+                setAmount(""); // Clear input
             } else {
                 const errorMessage = await response.text();
                 alert(`Transaction failed: ${errorMessage}`);
@@ -83,11 +93,11 @@ const Dashboard = () => {
     };
 
     if (loading) {
-        return <div>Loading account details...</div>; // Display loading indicator
+        return <div>Loading account details...</div>;
     }
 
     if (!accountDetails) {
-        return <div>No account details available.</div>; // Display fallback if no data
+        return <div>No account details available.</div>;
     }
 
     return (
@@ -114,13 +124,13 @@ const Dashboard = () => {
             </div>
 
             <div>
-                            <button
-                                onClick={() => navigate("/transaction-history")}
-                                style={{ marginBottom: "10px" }}
-                            >
-                                View Transaction History
-                            </button>
-                        </div>
+                <button
+                    onClick={() => navigate("/transaction-history")}
+                    style={{ marginBottom: "10px" }}
+                >
+                    View Transaction History
+                </button>
+            </div>
 
             <button
                 onClick={() => {
