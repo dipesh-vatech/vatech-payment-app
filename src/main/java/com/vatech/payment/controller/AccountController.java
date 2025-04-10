@@ -4,6 +4,10 @@ import com.vatech.payment.service.JwtUtil;
 import com.vatech.payment.dto.AuthRequest;
 import com.vatech.payment.service.AccountService;
 import com.vatech.payment.entity.Account;
+import com.vatech.payment.entity.User;
+import com.vatech.payment.repository.UserRepository;
+import com.vatech.payment.service.EmailService;
+import com.vatech.payment.dto.TransactionRequest;
 import com.vatech.payment.entity.Transaction;
 import com.vatech.payment.dto.TransactionRequest;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,12 @@ public class AccountController {
 
     @Autowired
     private AccountService accountService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -69,8 +79,21 @@ public class AccountController {
             // Extract username from JWT token
             String username = jwtUtil.extractUsername(token.replace("Bearer ", ""));
 
-            // Process withdrawal
+            // Fetch the user based on the username
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Process the withdrawal
             accountService.withdraw(username, request.getAmount());
+
+            // Send email notification to the user's email address
+            emailService.sendWithdrawalNotification(
+                    user.getEmail(),       // Recipient's email
+                    user.getUsername(),    // Username
+                    request.getAccountNumber(), // Account number
+                    request.getAmount()    // Withdrawal amount
+            );
+
             return ResponseEntity.ok("Withdrawal successful");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to process withdrawal: " + e.getMessage());

@@ -46,14 +46,19 @@ public class AuthController {
     // New Register Endpoint
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestBody AuthRequest authRequest) {
-        String accountNumber = userService.registerUser(authRequest.getUsername(), authRequest.getPassword());
+        // Include email in the registration logic
+        String accountNumber = userService.registerUser(
+                authRequest.getUsername(),
+                authRequest.getPassword(),
+                authRequest.getEmail() // Pass email dynamically
+        );
 
         // Wrap response in a Map for a more structured response
         Map<String, String> response = new HashMap<>();
         response.put("message", "User registered successfully");
         response.put("accountNumber", accountNumber); // Include account number in the response
+        response.put("email", authRequest.getEmail()); // Include email in the response
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
 }
