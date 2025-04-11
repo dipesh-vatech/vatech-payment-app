@@ -95,4 +95,5 @@ public class JwtUtilTest {
 
         assertTrue(exception.getMessage().contains("Token validation failed"));
     }
+
 }
