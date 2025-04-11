@@ -1,108 +1,98 @@
-//package com.vatech.payment.service;
-//
-//import io.jsonwebtoken.Jwts;
-//import io.jsonwebtoken.SignatureAlgorithm;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//
-//import java.lang.reflect.Field;
-//import java.security.Key;
-//import java.util.Date;
-//import static org.junit.jupiter.api.Assertions.*;
-//
-//import io.jsonwebtoken.JwtException;
-//import io.jsonwebtoken.security.Keys;
-//public class JwtUtilTest {
-//
-//    private JwtUtil jwtUtil;
-//    private Key secretKey;
-//
-//    @BeforeEach
-//    public void setUp() throws NoSuchFieldException, IllegalAccessException {
-//        jwtUtil = new JwtUtil();
-//
-//        // Use reflection to access the private `secretKey` field in JwtUtil
-//        Field secretKeyField = JwtUtil.class.getDeclaredField("secretKey");
-//        secretKeyField.setAccessible(true);
-//        secretKey = (Key) secretKeyField.get(jwtUtil);
-//    }
-//
+package com.vatech.payment.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.core.userdetails.UserDetails;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
+import java.security.Key;
+import java.util.Base64;
+
+public class JwtUtilTest {
+
+    private JwtUtil jwtUtil;
+    private Key secretKey;
+
+    @BeforeEach
+    public void setUp() {
+        // Generate a secure key for HMAC-SHA256
+        secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        jwtUtil = new JwtUtil(Base64.getEncoder().encodeToString(secretKey.getEncoded()));
+    }
+
+    @Test
+    public void testGenerateToken() {
+        String username = "testUser";
+        String token = jwtUtil.generateToken(username);
+
+        assertNotNull(token);
+        assertTrue(token.startsWith("eyJ")); // JWT tokens start with "eyJ"
+    }
+
+    @Test
+    public void testExtractUsername() {
+        String username = "testUser";
+        String token = jwtUtil.generateToken(username);
+
+        String extractedUsername = jwtUtil.extractUsername(token);
+        assertEquals(username, extractedUsername);
+    }
+
+    @Test
+    public void testValidateToken() {
+        String username = "testUser";
+        String token = jwtUtil.generateToken(username);
+
+        UserDetails userDetails = mock(UserDetails.class);
+        when(userDetails.getUsername()).thenReturn(username);
+
+        assertTrue(jwtUtil.validateToken(token, userDetails));
+    }
+
+    @Test
+    public void testValidateTokenWithInvalidUser() {
+        String username = "testUser";
+        String token = jwtUtil.generateToken(username);
+
+        UserDetails userDetails = mock(UserDetails.class);
+        when(userDetails.getUsername()).thenReturn("anotherUser");
+
+        assertFalse(jwtUtil.validateToken(token, userDetails));
+    }
+
 //    @Test
-//    public void testGenerateToken() {
-//        // Arrange
-//        String username = "testuser";
+//    public void testExtractUsernameWithExpiredToken() {
+//        String username = "testUser";
 //
-//        // Act
+//        // Generate a token with a short expiration time (e.g., 1 second)
 //        String token = jwtUtil.generateToken(username);
 //
-//        // Assert
-//        assertNotNull(token);
-//        assertTrue(token.startsWith("eyJ")); // Ensure it's a valid JWT format
-//    }
+//        // Simulate token expiration by waiting for 2 seconds
+//        try {
+//            Thread.sleep(2000); // Sleep for 2 seconds to ensure the token is expired
+//        } catch (InterruptedException e) {
+//            Thread.currentThread().interrupt();
+//        }
 //
-//    @Test
-//    public void testExtractUsername_ValidToken() {
-//        // Arrange
-//        String username = "testuser";
-//        String token = Jwts.builder()
-//                .setSubject(username)
-//                .setIssuedAt(new Date())
-//                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day validity
-//                .signWith(secretKey, SignatureAlgorithm.HS256)
-//                .compact();
-//
-//        // Act
-//        String extractedUsername = jwtUtil.extractUsername("Bearer " + token);
-//
-//        // Assert
-//        assertEquals(username, extractedUsername);
-//    }
-//
-//    @Test
-//    public void testExtractUsername_ExpiredToken() {
-//        // Arrange
-//        String username = "testuser";
-//        String expiredToken = Jwts.builder()
-//                .setSubject(username)
-//                .setIssuedAt(new Date(System.currentTimeMillis() - 86400000)) // Issued 1 day ago
-//                .setExpiration(new Date(System.currentTimeMillis() - 1000)) // Expired
-//                .signWith(secretKey, SignatureAlgorithm.HS256)
-//                .compact();
-//
-//        // Act & Assert
-//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-//            jwtUtil.extractUsername("Bearer " + expiredToken);
+//        Exception exception = assertThrows(RuntimeException.class, () -> {
+//            jwtUtil.extractUsername(token);
 //        });
-//        assertEquals("Expired token", exception.getMessage());
-//    }
 //
-//    @Test
-//    public void testExtractUsername_InvalidToken() {
-//        // Arrange
-//        String invalidToken = "Bearer invalid.token";
-//
-//        // Act & Assert
-//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-//            jwtUtil.extractUsername(invalidToken);
-//        });
-//        assertEquals("Token validation failed", exception.getMessage());
+//        assertTrue(exception.getMessage().contains("Expired token"));
 //    }
-//
-//    @Test
-//    public void testExtractUsername_EmptyToken() {
-//        // Act & Assert
-//        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-//            jwtUtil.extractUsername("");
-//        });
-//        assertEquals("Token validation failed", exception.getMessage());
-//    }
-//
-//    @Test
-//    public void testExtractUsername_NullToken() {
-//        // Act & Assert
-//        RuntimeException exception = assertThrows(NullPointerException.class, () -> {
-//            jwtUtil.extractUsername(null);
-//        });
-//        assertEquals("Token validation failed", exception.getMessage());
-//    }
-//}
+
+    @Test
+    public void testExtractUsernameWithInvalidToken() {
+        String invalidToken = "invalid.token.string";
+
+        Exception exception = assertThrows(RuntimeException.class, () -> {
+            jwtUtil.extractUsername(invalidToken);
+        });
+
+        assertTrue(exception.getMessage().contains("Token validation failed"));
+    }
+}
